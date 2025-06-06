@@ -1,0 +1,149 @@
+{
+  "description": "Complete P-Chain Import Transaction Analysis",
+  "transactionSummary": {
+    "direction": "C-Chain → P-Chain",
+    "type": "ImportTx (Type 17)",
+    "network": "Fuji Testnet (ID: 5)",
+    "assetFlow": {
+      "inputAmount": "30,001,024 nAVAX",
+      "outputAmount": "30,000,985 nAVAX",
+      "fee": "39 nAVAX"
+    }
+  },
+  "rawTransactionHex": "0000000000110000000500000000000000000000000000000000000000000000000000000000000000000000000013d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa000000070000000001c9b359000000000000000000000001000000019435373e894a43c335ed84d72e8212681db46dc700000000000000007fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d50000000168858b2897caead7b79e24cba5df91cbca8271e4c1bb23736fe147a06e4dc844000000003d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa000000050000000001c9c3800000000100000000",
+  "parsedTransaction": {
+    "header": {
+      "codecId": 0,
+      "transactionType": 17,
+      "networkId": 5
+    },
+    "baseTx": {
+      "blockchainId": "0000000000000000000000000000000000000000000000000000000000000000",
+      "outputs": [
+        {
+          "assetId": "3d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa",
+          "outputType": 7,
+          "amount": 30000985,
+          "locktime": 0,
+          "threshold": 1,
+          "addresses": ["9435373e894a43c335ed84d72e8212681db46dc7"]
+        }
+      ],
+      "inputs": []
+    },
+    "importFields": {
+      "sourceChain": "7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5",
+      "importedInputs": [
+        {
+          "utxoId": {
+            "transactionId": "68858b2897caead7b79e24cba5df91cbca8271e4c1bb23736fe147a06e4dc844",
+            "outputIndex": 0
+          },
+          "assetId": "3d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa",
+          "inputType": 5,
+          "amount": 30001024,
+          "signatureIndices": [0]
+        }
+      ]
+    }
+  },
+  "signedTransactionWrapper": {
+    "codecId": "0",
+    "vm": "PVM",
+    "txBytes": "0x0000000000110000000500000000000000000000000000000000000000000000000000000000000000000000000013d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa000000070000000001c9b359000000000000000000000001000000019435373e894a43c335ed84d72e8212681db46dc700000000000000007fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d50000000168858b2897caead7b79e24cba5df91cbca8271e4c1bb23736fe147a06e4dc844000000003d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa000000050000000001c9c3800000000100000000",
+    "utxos": [
+      "0x68858b2897caead7b79e24cba5df91cbca8271e4c1bb23736fe147a06e4dc844000000003d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa000000070000000001c9c380000000000000000000000001000000019435373e894a43c335ed84d72e8212681db46dc7"
+    ],
+    "addressMaps": [[["0x9435373e894a43c335ed84d72e8212681db46dc7", 0]]],
+    "credentials": [
+      [
+        "0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1e1d1f202122232425262728292a2b2c2e2d2f303132333435363738393a3b3c3d3e3f00"
+      ]
+    ]
+  },
+  "constructionGuide": {
+    "sdkApproach": {
+      "step1": "Get C-Chain UTXO to import",
+      "step2": "Create TransferableInput from UTXO reference",
+      "step3": "Create TransferableOutput for destination",
+      "step4": "Calculate fee (input - output)",
+      "step5": "Create ImportTx with baseTx, sourceChain, and importedInputs",
+      "step6": "Wrap in UnsignedTx with UTXOs and credentials"
+    },
+    "exampleCode": {
+      "imports": [
+        "import { ImportTx, BaseTx } from '../serializable/pvm';",
+        "import { TransferableInput, TransferableOutput } from '../serializable/avax';",
+        "import { Id, Address } from '../serializable/fxs/common';",
+        "import { TransferInput, TransferOutput, OutputOwners } from '../serializable/fxs/secp256k1';",
+        "import { BigIntPr, Int } from '../serializable/primitives';",
+        "import { UnsignedTx } from '../vms/common/unsignedTx';"
+      ],
+      "construction": [
+        "// Source UTXO from C-Chain",
+        "const sourceUtxo = {",
+        "  txId: '68858b2897caead7b79e24cba5df91cbca8271e4c1bb23736fe147a06e4dc844',",
+        "  outputIndex: 0,",
+        "  amount: 30001024n,",
+        "  assetId: '3d9bdac0ed1d761330cf680efdeb1a42159eb387d6d2950c96f7d28f61bbe2aa',",
+        "  address: '9435373e894a43c335ed84d72e8212681db46dc7'",
+        "};",
+        "",
+        "// Create imported input",
+        "const importedInput = new TransferableInput(",
+        "  new UTXOId(",
+        "    Id.fromString(sourceUtxo.txId),",
+        "    new Int(sourceUtxo.outputIndex)",
+        "  ),",
+        "  Id.fromString(sourceUtxo.assetId),",
+        "  new TransferInput(",
+        "    new BigIntPr(sourceUtxo.amount),",
+        "    new Input([new Int(0)])",
+        "  )",
+        ");",
+        "",
+        "// Create destination output (fee deducted)",
+        "const fee = 39n;",
+        "const destinationOutput = new TransferableOutput(",
+        "  Id.fromString(sourceUtxo.assetId),",
+        "  new TransferOutput(",
+        "    new BigIntPr(sourceUtxo.amount - fee),",
+        "    new OutputOwners(",
+        "      new BigIntPr(0n), // locktime",
+        "      new Int(1), // threshold",
+        "      [Address.fromString(sourceUtxo.address)]",
+        "    )",
+        "  )",
+        ");",
+        "",
+        "// Create ImportTx",
+        "const importTx = new ImportTx(",
+        "  new BaseTx(",
+        "    new Int(5), // Network ID (Fuji)",
+        "    Id.fromString('0000000000000000000000000000000000000000000000000000000000000000'), // P-Chain ID",
+        "    [destinationOutput],",
+        "    [] // No base inputs",
+        "  ),",
+        "  Id.fromString('7fc93d85c6d62c5b2ac0b519c87010ea5294012d1e407030d6acd0021cac10d5'), // C-Chain ID",
+        "  [importedInput]",
+        ");",
+        "",
+        "// Create UnsignedTx",
+        "const unsignedTx = new UnsignedTx(",
+        "  importTx,",
+        "  [sourceUtxo], // UTXOs being consumed",
+        "  addressMaps,",
+        "  credentials",
+        ");"
+      ]
+    }
+  },
+  "verificationSteps": {
+    "step1": "Verify source UTXO exists on C-Chain",
+    "step2": "Confirm UTXO is unspent and owned by signing address",
+    "step3": "Validate asset ID matches (AVAX)",
+    "step4": "Check fee calculation (39 nAVAX)",
+    "step5": "Ensure atomic cross-chain operation",
+    "step6": "Verify signature matches UTXO owner"
+  }
+}
